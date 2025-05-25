@@ -15,7 +15,12 @@ chrome.action.onClicked.addListener(async (tab) => {
   // Construct the URL with parameters
   const url = new URL(settings.baseUrl);
   url.searchParams.set('q', `Summarize the content at ${tab.url}`);
-  url.searchParams.set('model', settings.model);
+  
+  // Only set model parameter if not using temporary chat
+  if (!settings.useTemporaryChat) {
+    url.searchParams.set('model', settings.model);
+  }
+  
   if (settings.useTemporaryChat) {
     url.searchParams.set('temporary-chat', 'true');
   }

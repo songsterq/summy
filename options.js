@@ -11,6 +11,12 @@ function debounce(func, wait) {
   };
 }
 
+// Function to toggle model field based on temporary chat setting
+function toggleModelField(useTemporaryChat) {
+  const modelSelect = document.getElementById('model');
+  modelSelect.disabled = useTemporaryChat;
+}
+
 // Load saved options
 document.addEventListener('DOMContentLoaded', () => {
   chrome.storage.sync.get({
@@ -21,12 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('baseUrl').value = items.baseUrl;
     document.getElementById('model').value = items.model;
     document.getElementById('useTemporaryChat').checked = items.useTemporaryChat;
+    
+    // Initialize model field state
+    toggleModelField(items.useTemporaryChat);
   });
   
   // Add event listeners for auto-save
   document.getElementById('baseUrl').addEventListener('input', debounce(saveOptions, 500));
   document.getElementById('model').addEventListener('change', saveOptions);
-  document.getElementById('useTemporaryChat').addEventListener('change', saveOptions);
+  document.getElementById('useTemporaryChat').addEventListener('change', function() {
+    toggleModelField(this.checked);
+    saveOptions();
+  });
 });
 
 // Save options
