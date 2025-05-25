@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ChatGPT Summarizer",
+  "name": "Summy - ChatGPT Summarizer",
   "version": "1.0",
   "description": "Summarize web content using ChatGPT",
   "permissions": [

@@ -1,4 +1,4 @@
-# ChatGPT Summarizer Chrome Extension
+# Summy - ChatGPT Summarizer Chrome Extension
 
 A Chrome extension that helps you summarize web content using ChatGPT.
 
