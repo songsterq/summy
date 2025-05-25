@@ -37,14 +37,26 @@
       background-color: #0d8c6d;
     }
     .status {
-      margin-top: 10px;
-      padding: 10px;
+      padding: 10px 20px;
       border-radius: 4px;
-      display: none;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
     }
     .success {
       background-color: #d4edda;
       color: #155724;
+    }
+    .show-toast {
+      opacity: 1;
+    }
+    .hide-toast {
+      opacity: 0;
     }
   </style>
 </head>
@@ -77,7 +89,6 @@
     <p>To change the shortcut, go to chrome://extensions/shortcuts</p>
   </div>
 
-  <button id="save">Save Options</button>
   <div id="status" class="status"></div>
 
   <script src="options.js"></script>
