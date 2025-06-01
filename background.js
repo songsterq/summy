@@ -61,6 +61,30 @@ function enterPrompt(prompt) {
       // Create and dispatch an input event to trigger ChatGPT's UI
       const inputEvent = new Event('input', { bubbles: true });
       textbox.dispatchEvent(inputEvent);
+      
+      // Focus the textbox and set cursor to the end
+      textbox.focus();
+      
+      // Place the cursor at the end
+      const range = document.createRange();
+      const selection = window.getSelection();
+      range.selectNodeContents(textbox);
+      range.collapse(false); // false means collapse to end
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      // Simulate Enter key press to submit the prompt
+      setTimeout(() => {
+        const enterEvent = new KeyboardEvent('keydown', {
+          key: 'Enter',
+          code: 'Enter',
+          keyCode: 13,
+          which: 13,
+          bubbles: true,
+          cancelable: true
+        });
+        textbox.dispatchEvent(enterEvent);
+      }, 100); // Small delay to ensure focus is set
     }
   }, 500); // Check every 500ms until the textbox is found
 } 
