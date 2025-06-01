@@ -8,7 +8,7 @@ chrome.action.onClicked.addListener(async (tab) => {
   // Get the stored settings
   const settings = await chrome.storage.sync.get({
     baseUrl: 'https://chatgpt.com/',
-    model: 'gpt-4',
+    model: 'gpt-4o',
     useTemporaryChat: false
   });
 

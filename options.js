@@ -21,7 +21,7 @@ function toggleModelField(useTemporaryChat) {
 document.addEventListener('DOMContentLoaded', () => {
   chrome.storage.sync.get({
     baseUrl: 'https://chatgpt.com/',
-    model: 'gpt-4',
+    model: 'gpt-4o',
     useTemporaryChat: false
   }, (items) => {
     document.getElementById('baseUrl').value = items.baseUrl;
