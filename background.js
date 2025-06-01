@@ -67,7 +67,8 @@ chrome.action.onClicked.addListener(async (tab) => {
   const settings = await chrome.storage.sync.get({
     baseUrl: 'https://chatgpt.com/',
     model: 'gpt-4o',
-    useTemporaryChat: false
+    useTemporaryChat: false,
+    promptTemplate: 'Summarize the following content from {PAGE_URL}:\n\n{PAGE_CONTENT}'
   });
 
   // Construct the URL with parameters (without 'q' parameter)
@@ -83,7 +84,7 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 
   // Default prompt with just the URL
-  let prompt = `Summarize the content at ${tab.url}`;
+  let extractedContent = '';
 
   // Execute script to extract content from the page
   try {
@@ -93,13 +94,15 @@ chrome.action.onClicked.addListener(async (tab) => {
     });
     
     // Get the extracted content (results[0].result contains the return value)
-    const extractedContent = results[0].result;
-    
-    // Create the prompt with the extracted content
-    prompt = `Summarize the following content from ${tab.url}:\n\n${extractedContent}`;
+    extractedContent = results[0].result;
   } catch (error) {
     console.error('Error extracting content:', error);
   }
+  
+  // Process the prompt template by replacing macros
+  let prompt = settings.promptTemplate
+    .replace(/{PAGE_URL}/g, tab.url)
+    .replace(/{PAGE_CONTENT}/g, extractedContent);
   
   // Open the URL in a new tab and get the tab ID
   chrome.tabs.create({ url: url.toString() }, (newTab) => {
