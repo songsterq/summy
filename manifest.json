@@ -6,7 +6,11 @@
   "permissions": [
     "activeTab",
     "storage",
-    "commands"
+    "commands",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://*.chatgpt.com/*"
   ],
   "action": {
     "default_icon": {
