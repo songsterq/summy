@@ -17,12 +17,15 @@ function toggleModelField(useTemporaryChat) {
   modelSelect.disabled = useTemporaryChat;
 }
 
-// Fix chrome:// URLs since they cannot be opened directly from content scripts
-function handleShortcutLink() {
-  document.getElementById('shortcutLink').addEventListener('click', (e) => {
-    e.preventDefault();
-    // Tell the user how to access the shortcuts page
-    alert('To configure keyboard shortcuts:\n\n1. Copy this URL: chrome://extensions/shortcuts\n2. Open a new tab\n3. Paste and go to the URL\n4. Find "ChatGPT Summarizer" in the list and set your preferred shortcut');
+// Function to get the current keyboard shortcut
+function getCurrentShortcut() {
+  chrome.commands.getAll(commands => {
+    const command = commands.find(cmd => cmd.name === '_execute_action');
+    if (command && command.shortcut) {
+      document.getElementById('currentShortcut').textContent = command.shortcut;
+    } else {
+      document.getElementById('currentShortcut').textContent = "Command+Shift+S (Mac) / Ctrl+Shift+S (Windows/Linux)";
+    }
   });
 }
 
@@ -42,8 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize model field state
     toggleModelField(items.useTemporaryChat);
     
-    // Initialize shortcut link handler
-    handleShortcutLink();
+    // Get current keyboard shortcut
+    getCurrentShortcut();
   });
   
   // Add event listeners for auto-save
