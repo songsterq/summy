@@ -82,6 +82,9 @@ chrome.action.onClicked.addListener(async (tab) => {
     url.searchParams.set('temporary-chat', 'true');
   }
 
+  // Default prompt with just the URL
+  let prompt = `Summarize the content at ${tab.url}`;
+
   // Execute script to extract content from the page
   try {
     const results = await chrome.scripting.executeScript({
@@ -93,7 +96,10 @@ chrome.action.onClicked.addListener(async (tab) => {
     const extractedContent = results[0].result;
     
     // Create the prompt with the extracted content
-    const prompt = `Summarize the following content from ${tab.url}:\n\n${extractedContent}`;
+    prompt = `Summarize the following content from ${tab.url}:\n\n${extractedContent}`;
+  } catch (error) {
+    console.error('Error extracting content:', error);
+  }
   
   // Open the URL in a new tab and get the tab ID
   chrome.tabs.create({ url: url.toString() }, (newTab) => {
