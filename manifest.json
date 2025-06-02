@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Summy - ChatGPT Summarizer",
-  "version": "1.0",
-  "description": "Summarize web content using ChatGPT",
+  "version": "1.0.1",
+  "description": "Summarize any web page instantly using ChatGPT. Save time, cut through the noise, and get to the point—your way.",
   "permissions": [
     "activeTab",
     "storage",
