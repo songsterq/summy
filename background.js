@@ -138,7 +138,15 @@ function enterPrompt(prompt) {
       if (textbox.tagName.toLowerCase() === 'textarea') {
         textbox.value = prompt;
       } else {
-        textbox.textContent = prompt;
+        const escapeHtml = (str) =>
+          str.replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+          })[c]);
+        textbox.innerHTML = escapeHtml(prompt).replace(/\n/g, '<br>');
       }
 
       const inputEvent = new Event('input', { bubbles: true });
