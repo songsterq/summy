@@ -129,31 +129,45 @@ chrome.action.onClicked.addListener(async (tab) => {
 
 // Function to enter the prompt into the ChatGPT text box
 function enterPrompt(prompt) {
-  // Find the textarea by its ID
   const interval = setInterval(() => {
-    const textbox = document.querySelector('div[contenteditable="true"][id="prompt-textarea"]');
+    let textbox = document.querySelector('textarea#prompt-textarea');
+    if (!textbox) {
+      textbox = document.querySelector('div[contenteditable="true"][id="prompt-textarea"]');
+    }
+
     if (textbox) {
       clearInterval(interval);
-      
-      // Set the content of the textbox
-      textbox.innerHTML = `<p>${prompt}</p>`;
-      
-      // Create and dispatch an input event to trigger ChatGPT's UI
+
+      if (textbox.tagName.toLowerCase() === 'textarea') {
+        textbox.value = prompt;
+      } else {
+        const escapeHtml = (str) =>
+          str.replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+          })[c]);
+        textbox.innerHTML = escapeHtml(prompt).replace(/\n/g, '<br>');
+      }
+
       const inputEvent = new Event('input', { bubbles: true });
       textbox.dispatchEvent(inputEvent);
-      
-      // Focus the textbox and set cursor to the end
+
       textbox.focus();
-      
-      // Place the cursor at the end
-      const range = document.createRange();
-      const selection = window.getSelection();
-      range.selectNodeContents(textbox);
-      range.collapse(false); // false means collapse to end
-      selection.removeAllRanges();
-      selection.addRange(range);
-      
-      // Simulate Enter key press to submit the prompt
+
+      if (textbox.tagName.toLowerCase() === 'textarea') {
+        textbox.selectionStart = textbox.selectionEnd = textbox.value.length;
+      } else {
+        const range = document.createRange();
+        const selection = window.getSelection();
+        range.selectNodeContents(textbox);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+
       setTimeout(() => {
         const enterEvent = new KeyboardEvent('keydown', {
           key: 'Enter',
@@ -164,7 +178,7 @@ function enterPrompt(prompt) {
           cancelable: true
         });
         textbox.dispatchEvent(enterEvent);
-      }, 100); // Small delay to ensure focus is set
+      }, 100);
     }
-  }, 500); // Check every 500ms until the textbox is found
-} 
+  }, 500);
+}
