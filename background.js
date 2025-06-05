@@ -106,8 +106,8 @@ chrome.action.onClicked.addListener(async (tab) => {
   
   // Open the URL in a new tab and get the tab ID
   chrome.tabs.create({ url: url.toString() }, (newTab) => {
-    // Listen for the tab to finish loading
-    chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo, tab) {
+    // Define the update listener separately so we can easily remove it
+    const updateListener = (tabId, changeInfo, tab) => {
       // Check if this is the tab we opened and it's done loading
       if (tabId === newTab.id && changeInfo.status === 'complete') {
         // Execute script to enter the prompt
@@ -116,11 +116,14 @@ chrome.action.onClicked.addListener(async (tab) => {
           function: enterPrompt,
           args: [prompt]
         });
-        
+
         // Remove the listener once we've handled the event
-        chrome.tabs.onUpdated.removeListener(listener);
+        chrome.tabs.onUpdated.removeListener(updateListener);
       }
-    });
+    };
+
+    // Listen for the tab to finish loading
+    chrome.tabs.onUpdated.addListener(updateListener);
   });
 });
 
