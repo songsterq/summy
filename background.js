@@ -8,7 +8,23 @@ function extractMainContent() {
   const doc = document.cloneNode(true);
   const reader = new Readability(doc);
   const article = reader.parse();
-  return article ? article.textContent : '';
+
+  if (!article || !article.textContent) {
+    return '';
+  }
+
+  // Trim whitespace and collapse multiple blank lines
+  const lines = article.textContent.split('\n').map(line => line.trim());
+  const cleaned = [];
+  for (const line of lines) {
+    if (line) {
+      cleaned.push(line);
+    } else if (cleaned.length && cleaned[cleaned.length - 1] !== '') {
+      cleaned.push('');
+    }
+  }
+
+  return cleaned.join('\n');
 }
 
 // Handle extension icon click
