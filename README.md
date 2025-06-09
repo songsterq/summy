@@ -5,7 +5,8 @@ A Chrome extension that helps you summarize web content using ChatGPT. Simply cl
 ## Features
 
 - One-click summarization: Click the extension icon to instantly summarize the current page
-- Smart content extraction: Automatically extracts the main content from the page
+- Smart content extraction: Uses Mozilla's Readability library to reliably extract main content
+- Cleans up extracted text by removing extra blank lines
 - Configurable ChatGPT model (GPT-4 or GPT-3.5 Turbo)
 - Option to use temporary chat
 - Customizable base URL
@@ -43,7 +44,7 @@ A Chrome extension that helps you summarize web content using ChatGPT. Simply cl
 
 ## How It Works
 
-1. When triggered, the extension extracts the main content from the current webpage
+1. When triggered, the extension extracts the main content from the current webpage using Mozilla's Readability algorithm and removes excess blank lines
 2. It opens ChatGPT in a new tab
 3. The content is automatically entered into ChatGPT's interface
 4. A prompt is added to request a summary of the content
