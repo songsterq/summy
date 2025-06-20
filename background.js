@@ -13,18 +13,9 @@ function extractMainContent() {
     return '';
   }
 
-  // Trim whitespace and collapse multiple blank lines
-  const lines = article.textContent.split('\n').map(line => line.trim());
-  const cleaned = [];
-  for (const line of lines) {
-    if (line) {
-      cleaned.push(line);
-    } else if (cleaned.length && cleaned[cleaned.length - 1] !== '') {
-      cleaned.push('');
-    }
-  }
-
-  return cleaned.join('\n');
+  return article.textContent
+    .replace(/([.?!"])([A-Z])/g, '$1 $2')
+    .trim();
 }
 
 // Handle extension icon click
