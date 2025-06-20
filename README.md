@@ -61,8 +61,8 @@ You'll need to have access to ChatGPT (https://chatgpt.com/) for this extension 
 
 ## Testing
 
-Run the unit tests with Node.js:
+Run the unit tests with Node.js (v18 or newer):
 
 ```bash
-node tests/test_utils.js
+node tests/test_utils.js # from the project root
 ```
