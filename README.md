@@ -57,4 +57,12 @@ You'll need to have access to ChatGPT (https://chatgpt.com/) for this extension 
 - `storage`: To save your preferences
 - `commands`: For keyboard shortcut support
 - `scripting`: To extract content and interact with ChatGPT
-- Host permission for chatgpt.com: To interact with ChatGPT's interface 
+- Host permission for chatgpt.com: To interact with ChatGPT's interface
+
+## Testing
+
+Run the unit tests with Node.js:
+
+```bash
+node tests/test_utils.js
+```
