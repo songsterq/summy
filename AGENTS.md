@@ -1,11 +1,11 @@
 # AGENT Instructions
 
 ## Repository Overview
-Summy is a minimal Chrome extension that summarizes web pages using ChatGPT. It is built with vanilla JavaScript and HTML and runs directly in the browser without a build step.
+Summy is a minimal Chrome extension that summarizes web pages using ChatGPT. It is written in TypeScript and compiled to JavaScript for use in the browser.
 
 ## Development Workflow
-- No setup commands are necessary.
-- Run the unit tests with `node tests/test_utils.js` from the project root.
+- Install dependencies with `npm install`.
+- Run the unit tests with `npm test` from the project root. This command compiles the TypeScript before executing the tests.
 - Ensure Node.js 18 or later is installed so the built-in test runner is available.
 - To test changes manually:
   1. Open Chrome and navigate to `chrome://extensions/`.
@@ -16,11 +16,11 @@ Summy is a minimal Chrome extension that summarizes web pages using ChatGPT. It 
 ## Coding Style
 - Use two spaces for indentation in JavaScript, HTML, and JSON files.
 - Prefer single quotes for strings in JavaScript.
-- Keep the code vanilla—avoid adding npm dependencies or build tools.
+- Keep the code lightweight and avoid unnecessary dependencies.
 
 ## Programmatic Checks
-Run the Node-based tests before committing changes:
+Run the tests before committing changes:
 
 ```bash
-node tests/test_utils.js
+npm test
 ```

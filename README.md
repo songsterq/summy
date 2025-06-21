@@ -61,10 +61,9 @@ You'll need to have access to ChatGPT (https://chatgpt.com/) for this extension 
 
 ## Testing
 
-Install dependencies, build the TypeScript, and run the tests:
+Install dependencies and run the tests:
 
 ```bash
 npm install
-npm run build
-node tests/test_utils.js
+npm test # compiles the TypeScript and runs the unit tests
 ```
