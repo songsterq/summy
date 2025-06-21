@@ -1,8 +1,9 @@
-function debounce(func, wait) {
-  let timeout;
-  return function() {
+declare var Readability: any;
+
+export function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout | undefined;
+  return function(this: unknown, ...args: Parameters<T>): void {
     const context = this;
-    const args = arguments;
     clearTimeout(timeout);
     timeout = setTimeout(() => {
       func.apply(context, args);
@@ -10,14 +11,14 @@ function debounce(func, wait) {
   };
 }
 
-function cleanText(text) {
+export function cleanText(text: string): string {
   return text
     .replace(/([.?!"])([A-Z])/g, '$1 $2')
     .trim();
 }
 
-function extractMainContent() {
-  const doc = document.cloneNode(true);
+export function extractMainContent(): string {
+  const doc = document.cloneNode(true) as Document;
   const reader = new Readability(doc);
   const article = reader.parse();
 

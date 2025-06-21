@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Function to toggle model field based on temporary chat setting
 function toggleModelField(useTemporaryChat) {
   const modelSelect = document.getElementById('model');

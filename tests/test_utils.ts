@@ -1,5 +1,5 @@
-const { test } = require("node:test");
-const assert = require('node:assert');
+import { test } from 'node:test';
+import assert from 'node:assert';
 const { debounce, cleanText } = require('../utils.js');
 
 test('cleanText adds spaces and trims', () => {

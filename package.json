@@ -1,0 +1,21 @@
+{
+  "name": "summy",
+  "version": "1.0.0",
+  "description": "A Chrome extension that helps you summarize web content using ChatGPT. Simply click the extension icon or use the keyboard shortcut to automatically extract content from the current page and send it to ChatGPT for summarization.",
+  "main": "Readability.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node tests/test_utils.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,3 +1,4 @@
+// @ts-nocheck
 importScripts('utils.js');
 // The keyboard shortcut is handled by the manifest.json command
 chrome.runtime.onInstalled.addListener(() => {
