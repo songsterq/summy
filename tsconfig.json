@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": ".",
+    "rootDir": "."
+  },
+  "include": ["utils.ts"],
+  "exclude": ["node_modules"]
+}
