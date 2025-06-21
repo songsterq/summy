@@ -40,5 +40,5 @@ yarn-error.log*
 *.tmp
 *.temp 
 # Compiled files
-utils.js
+*.js
 
