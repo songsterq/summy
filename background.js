@@ -1,4 +1,4 @@
-importScripts('utils.js', 'content.js');
+importScripts('utils.js');
 // The keyboard shortcut is handled by the manifest.json command
 chrome.runtime.onInstalled.addListener(() => {
   console.log('ChatGPT Summarizer extension installed');
