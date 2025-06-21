@@ -5,7 +5,8 @@ Summy is a minimal Chrome extension that summarizes web pages using ChatGPT. It 
 
 ## Development Workflow
 - No setup commands are necessary.
-- There are no automated lint or test scripts.
+- Run the unit tests with `node tests/test_utils.js` from the project root.
+- Ensure Node.js 18 or later is installed so the built-in test runner is available.
 - To test changes manually:
   1. Open Chrome and navigate to `chrome://extensions/`.
   2. Enable **Developer mode**.
@@ -18,4 +19,8 @@ Summy is a minimal Chrome extension that summarizes web pages using ChatGPT. It 
 - Keep the code vanilla—avoid adding npm dependencies or build tools.
 
 ## Programmatic Checks
-There are no linting or testing commands to run for this repository.
+Run the Node-based tests before committing changes:
+
+```bash
+node tests/test_utils.js
+```

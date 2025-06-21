@@ -1,16 +1,3 @@
-// Debounce function to prevent multiple saves when typing
-function debounce(func, wait) {
-  let timeout;
-  return function() {
-    const context = this;
-    const args = arguments;
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      func.apply(context, args);
-    }, wait);
-  };
-}
-
 // Function to toggle model field based on temporary chat setting
 function toggleModelField(useTemporaryChat) {
   const modelSelect = document.getElementById('model');

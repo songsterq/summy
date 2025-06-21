@@ -1,22 +1,8 @@
+importScripts('utils.js');
 // The keyboard shortcut is handled by the manifest.json command
 chrome.runtime.onInstalled.addListener(() => {
   console.log('ChatGPT Summarizer extension installed');
 });
-
-// Function to extract main text content from a web page using Mozilla Readability
-function extractMainContent() {
-  const doc = document.cloneNode(true);
-  const reader = new Readability(doc);
-  const article = reader.parse();
-
-  if (!article || !article.textContent) {
-    return '';
-  }
-
-  return article.textContent
-    .replace(/([.?!"])([A-Z])/g, '$1 $2')
-    .trim();
-}
 
 // Handle extension icon click
 chrome.action.onClicked.addListener(async (tab) => {
@@ -48,7 +34,7 @@ chrome.action.onClicked.addListener(async (tab) => {
     // Inject the Readability library first
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      files: ['Readability.js']
+      files: ['Readability.js', 'utils.js']
     });
 
     const results = await chrome.scripting.executeScript({
