@@ -41,40 +41,67 @@ async function createContextMenus() {
     title: `${defaultPrompt.name} (Default)`,
     contexts: ['page']
   });
+  chrome.contextMenus.create({
+    id: `selected_${defaultPrompt.id}`,
+    title: `${defaultPrompt.name} (Default)`,
+    contexts: ['selection']
+  });
   
-  // Create separator if there are other prompts
   if (settings.prompts.length > 1) {
+    // Create separator if there are other prompts
     chrome.contextMenus.create({
       id: 'separator',
       type: 'separator',
       contexts: ['page']
     });
+    chrome.contextMenus.create({
+      id: 'selected_separator',
+      type: 'separator',
+      contexts: ['selection']
+    });
+
+    // Create context menu items for other prompts
+    settings.prompts.forEach(prompt => {
+      if (prompt.id !== defaultPrompt.id) {
+        chrome.contextMenus.create({
+          id: prompt.id,
+          title: prompt.name,
+          contexts: ['page']
+        });
+        chrome.contextMenus.create({
+          id: `selected_${prompt.id}`,
+          title: prompt.name,
+          contexts: ['selection']
+        });
+      }
+    });
   }
-  
-  // Create context menu items for other prompts
-  settings.prompts.forEach(prompt => {
-    if (prompt.id !== defaultPrompt.id) {
-      chrome.contextMenus.create({
-        id: prompt.id,
-        title: prompt.name,
-        contexts: ['page']
-      });
-    }
-  });
 }
 
 // Handle extension icon click
 chrome.action.onClicked.addListener(async (tab) => {
-  await processTab(tab, null);
+  await processTabOrSelection(tab, null);
 });
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  await processTab(tab, info.menuItemId);
+  if (info.menuItemId.startsWith('selected_')) {
+    // Handle selected text context menu
+    const promptId = info.menuItemId.replace('selected_', '');
+    await processSelectedText(tab, promptId, info.selectionText);
+  } else {
+    // Handle page summarization context menu
+    await processTab(tab, info.menuItemId);
+  }
 });
 
-// Common function to process a tab with a specific prompt
-async function processTab(tab, promptId) {
+// Common function to process content with a specific prompt
+async function processContent(tab, promptId, content) {
+  if (!content || content.trim() === '') {
+    console.log('No content provided');
+    return;
+  }
+
   // Get the stored settings
   const settings = await chrome.storage.sync.get(DEFAULT_SETTINGS);
 
@@ -88,12 +115,12 @@ async function processTab(tab, promptId) {
       promptTemplate = selectedPrompt.template;
     }
   } else if (settings.prompts && settings.prompts.length > 0) {
-    // Use default prompt (for extension icon click)
+    // Use default prompt
     const defaultPrompt = settings.prompts.find(p => p.id === settings.defaultPromptId) || settings.prompts[0];
     promptTemplate = defaultPrompt.template;
   }
 
-  // Construct the URL with parameters (without 'q' parameter)
+  // Construct the URL with parameters
   const url = new URL(settings.baseUrl);
   
   // Only set model parameter if not using temporary chat
@@ -105,32 +132,10 @@ async function processTab(tab, promptId) {
     url.searchParams.set('temporary-chat', 'true');
   }
 
-  // Default prompt with just the URL
-  let extractedContent = '';
-
-  // Execute script to extract content from the page
-  try {
-    // Inject the Readability library first
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ['Readability.js', 'utils.js']
-    });
-
-    const results = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      function: extractMainContent
-    });
-    
-    // Get the extracted content (results[0].result contains the return value)
-    extractedContent = results[0].result;
-  } catch (error) {
-    console.error('Error extracting content:', error);
-  }
-  
   // Process the prompt template by replacing macros
   let prompt = promptTemplate
     .replace(/{PAGE_URL}/g, tab.url)
-    .replace(/{PAGE_CONTENT}/g, extractedContent);
+    .replace(/{PAGE_CONTENT}/g, content.trim());
   
   // Open the URL in a new tab and get the tab ID
   chrome.tabs.create({ url: url.toString() }, (newTab) => {
@@ -153,6 +158,54 @@ async function processTab(tab, promptId) {
     // Listen for the tab to finish loading
     chrome.tabs.onUpdated.addListener(updateListener);
   });
+}
+
+// Function to process a tab (extract content from the page)
+async function processTab(tab, promptId) {
+  // Execute script to extract content from the page
+  try {
+    // Inject the Readability library first
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['Readability.js', 'utils.js']
+    });
+
+    const results = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      function: extractMainContent
+    });
+    
+    // Get the extracted content (results[0].result contains the return value)
+    const extractedContent = results[0].result;
+    
+    // Process the extracted content
+    await processContent(tab, promptId, extractedContent);
+  } catch (error) {
+    console.error('Error extracting content:', error);
+  }
+}
+
+// Function to process selected text
+async function processSelectedText(tab, promptId, selectedText) {
+  await processContent(tab, promptId, selectedText);
+}
+
+// Common function to handle both tab and selection processing
+async function processTabOrSelection(tab, promptId) {
+  // Try to get selected text first
+  try {
+    const response = await chrome.tabs.sendMessage(tab.id, { action: 'getSelectedText' });
+    if (response && response.selectedText && response.selectedText.trim()) {
+      // If there's selected text, use it
+      await processSelectedText(tab, promptId, response.selectedText);
+      return;
+    }
+  } catch (error) {
+    console.log('No content script or selected text available, falling back to page summary');
+  }
+  
+  // Fall back to page summarization
+  await processTab(tab, promptId);
 }
 
 // Function to enter the prompt into the ChatGPT text box
