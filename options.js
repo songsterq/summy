@@ -91,16 +91,7 @@ function saveOptions() {
     model,
     useTemporaryChat
   }, () => {
-    const status = document.getElementById('status');
-    status.textContent = 'Options saved.';
-    status.className = 'status success show-toast';
-    
-    setTimeout(() => {
-      status.className = 'status success hide-toast';
-      setTimeout(() => {
-        status.className = 'status success';
-      }, 500);
-    }, 2000);
+    showToast('Options saved.');
   });
 }
 
