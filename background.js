@@ -2,7 +2,20 @@ importScripts('utils.js');
 // The keyboard shortcut is handled by the manifest.json command
 chrome.runtime.onInstalled.addListener(async () => {
   console.log('ChatGPT Summarizer extension installed');
-  await createContextMenus();
+  
+  // Check if prompts already exist before creating defaults.
+  const existingData = await chrome.storage.sync.get(['prompts']);
+  if (!existingData.prompts || existingData.prompts.length === 0) {
+    // Create default prompts on installation
+    const defaultPrompts = generateDefaultPrompts();
+    await chrome.storage.sync.set({ 
+      prompts: defaultPrompts.prompts, 
+      defaultPromptId: defaultPrompts.defaultPromptId 
+    });
+  }
+  // Writing the default prompts above would result in the sync storage being updated.
+  // This would trigger the onChanged listener below, which would then call createContextMenus().
+  // So, we don't call createContextMenus() here.
 });
 
 chrome.storage.onChanged.addListener(async (changes, namespace) => {
@@ -17,21 +30,8 @@ async function createContextMenus() {
   chrome.contextMenus.removeAll();
   
   // Get stored settings
-  const settings = await chrome.storage.sync.get({
-    prompts: [],
-    defaultPromptId: null
-  });
-  
-  if (settings.prompts.length === 0) {
-    // Create default context menu item
-    chrome.contextMenus.create({
-      id: 'default-summarize',
-      title: 'Summarize with ChatGPT',
-      contexts: ['page']
-    });
-    return;
-  }
-  
+  const settings = await chrome.storage.sync.get(DEFAULT_SETTINGS);
+
   // Find the default prompt
   const defaultPrompt = settings.prompts.find(p => p.id === settings.defaultPromptId) || settings.prompts[0];
   
@@ -76,21 +76,12 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // Common function to process a tab with a specific prompt
 async function processTab(tab, promptId) {
   // Get the stored settings
-  const settings = await chrome.storage.sync.get({
-    baseUrl: 'https://chatgpt.com/',
-    model: 'gpt-4o',
-    useTemporaryChat: false,
-    prompts: [],
-    defaultPromptId: null
-  });
+  const settings = await chrome.storage.sync.get(DEFAULT_SETTINGS);
 
   // Get the prompt template
-  let promptTemplate = 'Summarize the following content from {PAGE_URL}:\n\n{PAGE_CONTENT}'; // fallback
+  let promptTemplate = DEFAULT_PROMPT_TEMPLATE; // fallback
   
-  if (promptId === 'default-summarize') {
-    // Use default fallback template
-    promptTemplate = 'Summarize the following content from {PAGE_URL}:\n\n{PAGE_CONTENT}';
-  } else if (promptId && settings.prompts && settings.prompts.length > 0) {
+  if (promptId && settings.prompts && settings.prompts.length > 0) {
     // Find the specific prompt by ID
     const selectedPrompt = settings.prompts.find(p => p.id === promptId);
     if (selectedPrompt) {

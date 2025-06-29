@@ -28,6 +28,67 @@ function extractMainContent() {
   return cleanText(article.textContent);
 }
 
+// Shared constants and utilities
+
+// Default prompt template
+const DEFAULT_PROMPT_TEMPLATE = 'Give me a short summary of the following content from {PAGE_URL}:\n\n{PAGE_CONTENT}';
+
+// Default prompt name
+const DEFAULT_PROMPT_NAME = 'Short Summary';
+
+// ELIM5 prompt template
+const ELIM5_PROMPT_TEMPLATE = 'Explain like I\'m Five, using easy to understand terms, of the following content from {PAGE_URL}:\n\n{PAGE_CONTENT}';
+
+// ELIM5 prompt name
+const ELIM5_PROMPT_NAME = 'ELIM5';
+
+// Default settings
+const DEFAULT_SETTINGS = {
+  baseUrl: 'https://chatgpt.com/',
+  model: 'gpt-4o',
+  useTemporaryChat: false,
+  prompts: [],
+  defaultPromptId: null
+};
+
+// Generate unique ID for prompts
+function generatePromptId() {
+  return 'prompt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// Function to generate default prompts
+function generateDefaultPrompts() {
+  const shortSummaryId = generatePromptId();
+  const elim5Id = generatePromptId();
+  
+  return {
+    prompts: [
+      {
+        id: shortSummaryId,
+        name: DEFAULT_PROMPT_NAME,
+        template: DEFAULT_PROMPT_TEMPLATE
+      },
+      {
+        id: elim5Id,
+        name: ELIM5_PROMPT_NAME,
+        template: ELIM5_PROMPT_TEMPLATE
+      }
+    ],
+    defaultPromptId: shortSummaryId // Short Summary remains the default
+  };
+}
+
+// Export for Node.js environment (for testing)
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { debounce, cleanText, extractMainContent };
+  module.exports = {
+    DEFAULT_PROMPT_TEMPLATE,
+    DEFAULT_PROMPT_NAME,
+    ELIM5_PROMPT_TEMPLATE,
+    ELIM5_PROMPT_NAME,
+    DEFAULT_SETTINGS,
+    cleanText,
+    debounce,
+    extractMainContent,
+    generateDefaultPrompts
+  };
 }

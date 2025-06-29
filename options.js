@@ -4,11 +4,6 @@ function toggleModelField(useTemporaryChat) {
   modelSelect.disabled = useTemporaryChat;
 }
 
-// Generate unique ID for prompts
-function generatePromptId() {
-  return 'prompt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
-
 // Function to get the current keyboard shortcut
 function getCurrentShortcut() {
   chrome.commands.getAll(commands => {
@@ -23,13 +18,7 @@ function getCurrentShortcut() {
 
 // Load saved options
 document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.sync.get({
-    baseUrl: 'https://chatgpt.com/',
-    model: 'gpt-4o',
-    useTemporaryChat: false,
-    prompts: [],
-    defaultPromptId: null
-  }, (items) => {
+  chrome.storage.sync.get(DEFAULT_SETTINGS, (items) => {
     document.getElementById('baseUrl').value = items.baseUrl;
     document.getElementById('model').value = items.model;
     document.getElementById('useTemporaryChat').checked = items.useTemporaryChat;
@@ -100,15 +89,10 @@ function loadPrompts(prompts, defaultPromptId) {
   promptsList.innerHTML = '';
   
   if (prompts.length === 0) {
-    // Create a default prompt if none exist
-    const defaultPrompt = {
-      id: generatePromptId(),
-      name: 'Short Summary',
-      template: 'Give me a short summary of the following content from {PAGE_URL}:\n\n{PAGE_CONTENT}'
-    };
-    prompts = [defaultPrompt];
-    // Always set the first prompt as default if no default is set
-    const newDefaultPromptId = defaultPromptId || defaultPrompt.id;
+    // Create default prompts if none exist
+    const defaultPrompts = generateDefaultPrompts();
+    prompts = defaultPrompts.prompts;
+    const newDefaultPromptId = defaultPromptId || defaultPrompts.defaultPromptId;
     chrome.storage.sync.set({ prompts, defaultPromptId: newDefaultPromptId }, () => {
       // Reload prompts with the updated defaultPromptId
       loadPrompts(prompts, newDefaultPromptId);
