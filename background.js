@@ -1,24 +1,94 @@
 importScripts('utils.js');
 // The keyboard shortcut is handled by the manifest.json command
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(async () => {
   console.log('ChatGPT Summarizer extension installed');
+  
+  // Check if prompts already exist before creating defaults.
+  const existingData = await chrome.storage.sync.get(['prompts']);
+  if (!existingData.prompts || existingData.prompts.length === 0) {
+    // Create default prompts on installation
+    const defaultPrompts = generateDefaultPrompts();
+    await chrome.storage.sync.set({ 
+      prompts: defaultPrompts.prompts, 
+      defaultPromptId: defaultPrompts.defaultPromptId 
+    });
+  }
+  // Writing the default prompts above would result in the sync storage being updated.
+  // This would trigger the onChanged listener below, which would then call createContextMenus().
+  // So, we don't call createContextMenus() here.
 });
+
+chrome.storage.onChanged.addListener(async (changes, namespace) => {
+  if (namespace === 'sync' && (changes.prompts || changes.defaultPromptId)) {
+    await createContextMenus();
+  }
+});
+
+// Create context menu items for all prompts
+async function createContextMenus() {
+  // Remove all existing context menu items
+  chrome.contextMenus.removeAll();
+  
+  // Get stored settings
+  const settings = await chrome.storage.sync.get(DEFAULT_SETTINGS);
+
+  // Find the default prompt
+  const defaultPrompt = settings.prompts.find(p => p.id === settings.defaultPromptId) || settings.prompts[0];
+  
+  // Create context menu item for default prompt first
+  chrome.contextMenus.create({
+    id: defaultPrompt.id,
+    title: `${defaultPrompt.name} (Default)`,
+    contexts: ['page']
+  });
+  
+  // Create separator if there are other prompts
+  if (settings.prompts.length > 1) {
+    chrome.contextMenus.create({
+      id: 'separator',
+      type: 'separator',
+      contexts: ['page']
+    });
+  }
+  
+  // Create context menu items for other prompts
+  settings.prompts.forEach(prompt => {
+    if (prompt.id !== defaultPrompt.id) {
+      chrome.contextMenus.create({
+        id: prompt.id,
+        title: prompt.name,
+        contexts: ['page']
+      });
+    }
+  });
+}
 
 // Handle extension icon click
 chrome.action.onClicked.addListener(async (tab) => {
-  // Get the stored settings
-  const settings = await chrome.storage.sync.get({
-    baseUrl: 'https://chatgpt.com/',
-    model: 'gpt-4o',
-    useTemporaryChat: false,
-    prompts: [],
-    defaultPromptId: null
-  });
+  await processTab(tab, null);
+});
 
-  // Get the default prompt template
-  let promptTemplate = 'Summarize the following content from {PAGE_URL}:\n\n{PAGE_CONTENT}'; // fallback
+// Handle context menu clicks
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  await processTab(tab, info.menuItemId);
+});
+
+// Common function to process a tab with a specific prompt
+async function processTab(tab, promptId) {
+  // Get the stored settings
+  const settings = await chrome.storage.sync.get(DEFAULT_SETTINGS);
+
+  // Get the prompt template
+  let promptTemplate = DEFAULT_PROMPT_TEMPLATE; // fallback
   
-  if (settings.prompts && settings.prompts.length > 0) {
+  if (promptId && settings.prompts && settings.prompts.length > 0) {
+    // Find the specific prompt by ID
+    const selectedPrompt = settings.prompts.find(p => p.id === promptId);
+    if (selectedPrompt) {
+      promptTemplate = selectedPrompt.template;
+    }
+  } else if (settings.prompts && settings.prompts.length > 0) {
+    // Use default prompt (for extension icon click)
     const defaultPrompt = settings.prompts.find(p => p.id === settings.defaultPromptId) || settings.prompts[0];
     promptTemplate = defaultPrompt.template;
   }
@@ -83,7 +153,7 @@ chrome.action.onClicked.addListener(async (tab) => {
     // Listen for the tab to finish loading
     chrome.tabs.onUpdated.addListener(updateListener);
   });
-});
+}
 
 // Function to enter the prompt into the ChatGPT text box
 function enterPrompt(prompt) {
