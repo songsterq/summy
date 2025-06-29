@@ -153,6 +153,120 @@
     .shortcut-link:hover {
       text-decoration: underline;
     }
+
+    .prompt-form {
+      margin-bottom: 30px;
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .form-actions button {
+      flex: none;
+    }
+
+    .prompts-list h4 {
+      margin-bottom: 15px;
+      color: var(--text-color);
+      font-weight: 600;
+    }
+
+    .prompt-item {
+      background-color: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .prompt-item.default {
+      border-color: var(--primary-color);
+      background-color: #f0f7f4;
+    }
+
+    .prompt-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .prompt-name {
+      font-weight: 600;
+      color: var(--text-color);
+    }
+
+    .prompt-name.default::after {
+      content: " (Default)";
+      color: var(--primary-color);
+      font-weight: normal;
+      font-size: 12px;
+    }
+
+    .prompt-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .prompt-actions button {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 4px;
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background-color: #5a6268;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #c82333;
+    }
+
+    .btn-move {
+      background-color: #ffc107;
+      color: #212529;
+    }
+
+    .btn-move:hover {
+      background-color: #e0a800;
+    }
+
+    .prompt-content {
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+
+    .empty-prompts {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+      padding: 20px;
+    }
   </style>
 </head>
 <body>
@@ -180,9 +294,36 @@
   
   <div class="card">
     <div class="form-group">
-      <label for="promptTemplate">Prompt Template:</label>
-      <p class="info-text">You can use macros {PAGE_URL} and {PAGE_CONTENT} in your prompt.</p>
-      <textarea id="promptTemplate" rows="6"></textarea>
+      <label for="defaultPrompt">Default Prompt:</label>
+      <select id="defaultPrompt">
+        <option value="">Select a default prompt...</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Prompt Management</h3>
+    <p class="info-text">Create and manage multiple prompts. Use macros {PAGE_URL} and {PAGE_CONTENT} in your prompts.</p>
+    
+    <div class="prompt-form">
+      <div class="form-group">
+        <label for="promptName">Prompt Name:</label>
+        <input type="text" id="promptName" placeholder="Enter prompt name">
+      </div>
+      <div class="form-group">
+        <label for="promptTemplate">Prompt Template:</label>
+        <textarea id="promptTemplate" rows="6" placeholder="Enter your prompt template here..."></textarea>
+      </div>
+      <div class="form-actions">
+        <button id="addPromptBtn">Add Prompt</button>
+        <button id="updatePromptBtn" style="display: none;">Update Prompt</button>
+        <button id="cancelEditBtn" style="display: none;">Cancel</button>
+      </div>
+    </div>
+
+    <div class="prompts-list">
+      <h4>Saved Prompts</h4>
+      <div id="promptsList"></div>
     </div>
   </div>
   

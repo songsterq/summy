@@ -11,8 +11,17 @@ chrome.action.onClicked.addListener(async (tab) => {
     baseUrl: 'https://chatgpt.com/',
     model: 'gpt-4o',
     useTemporaryChat: false,
-    promptTemplate: 'Summarize the following content from {PAGE_URL}:\n\n{PAGE_CONTENT}'
+    prompts: [],
+    defaultPromptId: null
   });
+
+  // Get the default prompt template
+  let promptTemplate = 'Summarize the following content from {PAGE_URL}:\n\n{PAGE_CONTENT}'; // fallback
+  
+  if (settings.prompts && settings.prompts.length > 0) {
+    const defaultPrompt = settings.prompts.find(p => p.id === settings.defaultPromptId) || settings.prompts[0];
+    promptTemplate = defaultPrompt.template;
+  }
 
   // Construct the URL with parameters (without 'q' parameter)
   const url = new URL(settings.baseUrl);
@@ -49,7 +58,7 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
   
   // Process the prompt template by replacing macros
-  let prompt = settings.promptTemplate
+  let prompt = promptTemplate
     .replace(/{PAGE_URL}/g, tab.url)
     .replace(/{PAGE_CONTENT}/g, extractedContent);
   
