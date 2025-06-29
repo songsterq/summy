@@ -1,11 +1,80 @@
 importScripts('utils.js');
 // The keyboard shortcut is handled by the manifest.json command
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(async () => {
   console.log('ChatGPT Summarizer extension installed');
+  await createContextMenus();
 });
+
+chrome.storage.onChanged.addListener(async (changes, namespace) => {
+  if (namespace === 'sync' && (changes.prompts || changes.defaultPromptId)) {
+    await createContextMenus();
+  }
+});
+
+// Create context menu items for all prompts
+async function createContextMenus() {
+  // Remove all existing context menu items
+  chrome.contextMenus.removeAll();
+  
+  // Get stored settings
+  const settings = await chrome.storage.sync.get({
+    prompts: [],
+    defaultPromptId: null
+  });
+  
+  if (settings.prompts.length === 0) {
+    // Create default context menu item
+    chrome.contextMenus.create({
+      id: 'default-summarize',
+      title: 'Summarize with ChatGPT',
+      contexts: ['page']
+    });
+    return;
+  }
+  
+  // Find the default prompt
+  const defaultPrompt = settings.prompts.find(p => p.id === settings.defaultPromptId) || settings.prompts[0];
+  
+  // Create context menu item for default prompt first
+  chrome.contextMenus.create({
+    id: defaultPrompt.id,
+    title: `${defaultPrompt.name} (Default)`,
+    contexts: ['page']
+  });
+  
+  // Create separator if there are other prompts
+  if (settings.prompts.length > 1) {
+    chrome.contextMenus.create({
+      id: 'separator',
+      type: 'separator',
+      contexts: ['page']
+    });
+  }
+  
+  // Create context menu items for other prompts
+  settings.prompts.forEach(prompt => {
+    if (prompt.id !== defaultPrompt.id) {
+      chrome.contextMenus.create({
+        id: prompt.id,
+        title: prompt.name,
+        contexts: ['page']
+      });
+    }
+  });
+}
 
 // Handle extension icon click
 chrome.action.onClicked.addListener(async (tab) => {
+  await processTab(tab, null);
+});
+
+// Handle context menu clicks
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  await processTab(tab, info.menuItemId);
+});
+
+// Common function to process a tab with a specific prompt
+async function processTab(tab, promptId) {
   // Get the stored settings
   const settings = await chrome.storage.sync.get({
     baseUrl: 'https://chatgpt.com/',
@@ -15,10 +84,20 @@ chrome.action.onClicked.addListener(async (tab) => {
     defaultPromptId: null
   });
 
-  // Get the default prompt template
+  // Get the prompt template
   let promptTemplate = 'Summarize the following content from {PAGE_URL}:\n\n{PAGE_CONTENT}'; // fallback
   
-  if (settings.prompts && settings.prompts.length > 0) {
+  if (promptId === 'default-summarize') {
+    // Use default fallback template
+    promptTemplate = 'Summarize the following content from {PAGE_URL}:\n\n{PAGE_CONTENT}';
+  } else if (promptId && settings.prompts && settings.prompts.length > 0) {
+    // Find the specific prompt by ID
+    const selectedPrompt = settings.prompts.find(p => p.id === promptId);
+    if (selectedPrompt) {
+      promptTemplate = selectedPrompt.template;
+    }
+  } else if (settings.prompts && settings.prompts.length > 0) {
+    // Use default prompt (for extension icon click)
     const defaultPrompt = settings.prompts.find(p => p.id === settings.defaultPromptId) || settings.prompts[0];
     promptTemplate = defaultPrompt.template;
   }
@@ -83,7 +162,7 @@ chrome.action.onClicked.addListener(async (tab) => {
     // Listen for the tab to finish loading
     chrome.tabs.onUpdated.addListener(updateListener);
   });
-});
+}
 
 // Function to enter the prompt into the ChatGPT text box
 function enterPrompt(prompt) {
