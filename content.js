@@ -15,23 +15,3 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ selectedText: text });
   }
 });
-
-// Listen for keyboard shortcuts
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'summarizeSelection') {
-    const selection = window.getSelection();
-    const text = selection.toString().trim();
-    
-    if (text) {
-      // Send the selected text back to background script for processing
-      chrome.runtime.sendMessage({
-        action: 'processSelectedText',
-        text: text,
-        url: window.location.href,
-        promptId: request.promptId
-      });
-    }
-    
-    sendResponse({ success: true });
-  }
-});

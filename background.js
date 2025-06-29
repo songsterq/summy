@@ -95,14 +95,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-// Listen for messages from content script
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
-  if (request.action === 'processSelectedText') {
-    await processSelectedText(sender.tab, request.promptId, request.text);
-    sendResponse({ success: true });
-  }
-});
-
 // Common function to process a tab with a specific prompt
 async function processTab(tab, promptId) {
   // Get the stored settings
