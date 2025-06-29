@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 show_help() {
     echo -e "${BLUE}Chrome Extension Build Script${NC}"
     echo ""
-    echo "Usage: ./build.sh [options]"
+    echo "Usage: ./build.sh -t <major|minor|patch> [-c] [-h]"
     echo ""
     echo "Options:"
     echo "  -t, --type <major|minor|patch>  Increment version number (required)"
