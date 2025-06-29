@@ -41,51 +41,41 @@ async function createContextMenus() {
     title: `${defaultPrompt.name} (Default)`,
     contexts: ['page']
   });
+  chrome.contextMenus.create({
+    id: `selected_${defaultPrompt.id}`,
+    title: `${defaultPrompt.name} (Default)`,
+    contexts: ['selection']
+  });
   
-  // Create separator if there are other prompts
   if (settings.prompts.length > 1) {
+    // Create separator if there are other prompts
     chrome.contextMenus.create({
       id: 'separator',
       type: 'separator',
       contexts: ['page']
     });
+    chrome.contextMenus.create({
+      id: 'selected_separator',
+      type: 'separator',
+      contexts: ['selection']
+    });
+
+    // Create context menu items for other prompts
+    settings.prompts.forEach(prompt => {
+      if (prompt.id !== defaultPrompt.id) {
+        chrome.contextMenus.create({
+          id: prompt.id,
+          title: prompt.name,
+          contexts: ['page']
+        });
+        chrome.contextMenus.create({
+          id: `selected_${prompt.id}`,
+          title: prompt.name,
+          contexts: ['selection']
+        });
+      }
+    });
   }
-  
-  // Create context menu items for other prompts
-  settings.prompts.forEach(prompt => {
-    if (prompt.id !== defaultPrompt.id) {
-      chrome.contextMenus.create({
-        id: prompt.id,
-        title: prompt.name,
-        contexts: ['page']
-      });
-    }
-  });
-  
-  // Create context menu items for selected text
-  chrome.contextMenus.create({
-    id: 'selected_separator',
-    type: 'separator',
-    contexts: ['selection']
-  });
-  
-  // Create selected text context menu item for default prompt
-  chrome.contextMenus.create({
-    id: `selected_${defaultPrompt.id}`,
-    title: `Summarize Selected Text (${defaultPrompt.name})`,
-    contexts: ['selection']
-  });
-  
-  // Create selected text context menu items for other prompts
-  settings.prompts.forEach(prompt => {
-    if (prompt.id !== defaultPrompt.id) {
-      chrome.contextMenus.create({
-        id: `selected_${prompt.id}`,
-        title: `Summarize with ${prompt.name}`,
-        contexts: ['selection']
-      });
-    }
-  });
 }
 
 // Handle extension icon click
