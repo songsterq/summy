@@ -31,9 +31,15 @@
         "default": "Ctrl+Shift+S",
         "mac": "Command+Shift+S"
       },
-      "description": "Summarize current page"
+      "description": "Summarize selected text or current page"
     }
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",

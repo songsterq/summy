@@ -61,16 +61,56 @@ async function createContextMenus() {
       });
     }
   });
+  
+  // Create context menu items for selected text
+  chrome.contextMenus.create({
+    id: 'selected_separator',
+    type: 'separator',
+    contexts: ['selection']
+  });
+  
+  // Create selected text context menu item for default prompt
+  chrome.contextMenus.create({
+    id: `selected_${defaultPrompt.id}`,
+    title: `Summarize Selected Text (${defaultPrompt.name})`,
+    contexts: ['selection']
+  });
+  
+  // Create selected text context menu items for other prompts
+  settings.prompts.forEach(prompt => {
+    if (prompt.id !== defaultPrompt.id) {
+      chrome.contextMenus.create({
+        id: `selected_${prompt.id}`,
+        title: `Summarize with ${prompt.name}`,
+        contexts: ['selection']
+      });
+    }
+  });
 }
 
 // Handle extension icon click
 chrome.action.onClicked.addListener(async (tab) => {
-  await processTab(tab, null);
+  await processTabOrSelection(tab, null);
 });
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  await processTab(tab, info.menuItemId);
+  if (info.menuItemId.startsWith('selected_')) {
+    // Handle selected text context menu
+    const promptId = info.menuItemId.replace('selected_', '');
+    await processSelectedText(tab, promptId, info.selectionText);
+  } else {
+    // Handle page summarization context menu
+    await processTab(tab, info.menuItemId);
+  }
+});
+
+// Listen for messages from content script
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+  if (request.action === 'processSelectedText') {
+    await processSelectedText(sender.tab, request.promptId, request.text);
+    sendResponse({ success: true });
+  }
 });
 
 // Common function to process a tab with a specific prompt
@@ -131,6 +171,89 @@ async function processTab(tab, promptId) {
   let prompt = promptTemplate
     .replace(/{PAGE_URL}/g, tab.url)
     .replace(/{PAGE_CONTENT}/g, extractedContent);
+  
+  // Open the URL in a new tab and get the tab ID
+  chrome.tabs.create({ url: url.toString() }, (newTab) => {
+    // Define the update listener separately so we can easily remove it
+    const updateListener = (tabId, changeInfo, tab) => {
+      // Check if this is the tab we opened and it's done loading
+      if (tabId === newTab.id && changeInfo.status === 'complete') {
+        // Execute script to enter the prompt
+        chrome.scripting.executeScript({
+          target: { tabId: newTab.id },
+          function: enterPrompt,
+          args: [prompt]
+        });
+
+        // Remove the listener once we've handled the event
+        chrome.tabs.onUpdated.removeListener(updateListener);
+      }
+    };
+
+    // Listen for the tab to finish loading
+    chrome.tabs.onUpdated.addListener(updateListener);
+  });
+}
+
+// Common function to handle both tab and selection processing
+async function processTabOrSelection(tab, promptId) {
+  // Try to get selected text first
+  try {
+    const response = await chrome.tabs.sendMessage(tab.id, { action: 'getSelectedText' });
+    if (response && response.selectedText && response.selectedText.trim()) {
+      // If there's selected text, use it
+      await processSelectedText(tab, promptId, response.selectedText);
+      return;
+    }
+  } catch (error) {
+    console.log('No content script or selected text available, falling back to page summary');
+  }
+  
+  // Fall back to page summarization
+  await processTab(tab, promptId);
+}
+
+// Common function to process selected text with a specific prompt
+async function processSelectedText(tab, promptId, selectedText) {
+  if (!selectedText || selectedText.trim() === '') {
+    console.log('No text selected');
+    return;
+  }
+
+  // Get the stored settings
+  const settings = await chrome.storage.sync.get(DEFAULT_SETTINGS);
+
+  // Get the prompt template
+  let promptTemplate = DEFAULT_PROMPT_TEMPLATE; // fallback
+  
+  if (promptId && settings.prompts && settings.prompts.length > 0) {
+    // Find the specific prompt by ID
+    const selectedPrompt = settings.prompts.find(p => p.id === promptId);
+    if (selectedPrompt) {
+      promptTemplate = selectedPrompt.template;
+    }
+  } else if (settings.prompts && settings.prompts.length > 0) {
+    // Use default prompt
+    const defaultPrompt = settings.prompts.find(p => p.id === settings.defaultPromptId) || settings.prompts[0];
+    promptTemplate = defaultPrompt.template;
+  }
+
+  // Construct the URL with parameters
+  const url = new URL(settings.baseUrl);
+  
+  // Only set model parameter if not using temporary chat
+  if (!settings.useTemporaryChat) {
+    url.searchParams.set('model', settings.model);
+  }
+  
+  if (settings.useTemporaryChat) {
+    url.searchParams.set('temporary-chat', 'true');
+  }
+
+  // Process the prompt template by replacing macros
+  let prompt = promptTemplate
+    .replace(/{PAGE_URL}/g, tab.url)
+    .replace(/{PAGE_CONTENT}/g, selectedText.trim());
   
   // Open the URL in a new tab and get the tab ID
   chrome.tabs.create({ url: url.toString() }, (newTab) => {
