@@ -68,7 +68,33 @@ You'll need to have access to ChatGPT (https://chatgpt.com/) for this extension 
 - `scripting`: To extract content and interact with ChatGPT
 - Host permission for chatgpt.com: To interact with ChatGPT's interface
 
-## Testing
+## Development
+
+### Building for Release
+
+Use the included build script to create a production-ready package:
+
+```bash
+# Bump patch version and create zip package
+./build.sh -t patch
+
+# Bump minor version and create git commit
+./build.sh -t minor -c
+
+# Bump major version
+./build.sh -t major
+
+# Show help
+./build.sh -h
+```
+
+The build script will:
+- Automatically increment the version number in `manifest.json`
+- Copy all production files to `dist/` directory
+- Create a versioned zip file (e.g., `summy-v1.0.3.zip`)
+- Optionally create a git commit with the version bump
+
+### Testing
 
 Run the unit tests with Node.js (v18 or newer):
 
