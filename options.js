@@ -56,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('addPromptBtn').addEventListener('click', addPrompt);
   document.getElementById('updatePromptBtn').addEventListener('click', updatePrompt);
   document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
-  document.getElementById('defaultPrompt').addEventListener('change', updateDefaultPrompt);
   
   // Add event delegation for prompt action buttons
   document.getElementById('promptsList').addEventListener('click', function(e) {
@@ -64,8 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!promptItem) return;
     
     const promptId = promptItem.dataset.promptId;
-    const promptIndex = parseInt(promptItem.dataset.promptIndex);
-    
     if (e.target.classList.contains('btn-edit')) {
       editPrompt(promptId);
     } else if (e.target.classList.contains('btn-delete')) {
@@ -98,18 +95,16 @@ function saveOptions() {
 // Load and display prompts
 function loadPrompts(prompts, defaultPromptId) {
   const promptsList = document.getElementById('promptsList');
-  const defaultPromptSelect = document.getElementById('defaultPrompt');
   
   // Clear existing content
   promptsList.innerHTML = '';
-  defaultPromptSelect.innerHTML = '<option value="">Select a default prompt...</option>';
   
   if (prompts.length === 0) {
     // Create a default prompt if none exist
     const defaultPrompt = {
       id: generatePromptId(),
-      name: 'Summy',
-      template: 'Summarize the following content from {PAGE_URL}:\n\n{PAGE_CONTENT}'
+      name: 'Short Summary',
+      template: 'Give me a short summary of the following content from {PAGE_URL}:\n\n{PAGE_CONTENT}'
     };
     prompts = [defaultPrompt];
     // Always set the first prompt as default if no default is set
@@ -122,15 +117,6 @@ function loadPrompts(prompts, defaultPromptId) {
   }
   
   prompts.forEach((prompt, index) => {
-    // Add to dropdown
-    const option = document.createElement('option');
-    option.value = prompt.id;
-    option.textContent = prompt.name;
-    if (prompt.id === defaultPromptId) {
-      option.selected = true;
-    }
-    defaultPromptSelect.appendChild(option);
-    
     // Add to list
     const promptItem = document.createElement('div');
     promptItem.className = 'prompt-item' + (prompt.id === defaultPromptId ? ' default' : '');
@@ -299,18 +285,6 @@ function movePrompt(promptId, direction) {
   });
 }
 
-// Update default prompt
-function updateDefaultPrompt() {
-  const defaultPromptId = document.getElementById('defaultPrompt').value;
-  
-  chrome.storage.sync.get(['prompts'], (items) => {
-    chrome.storage.sync.set({ defaultPromptId }, () => {
-      loadPrompts(items.prompts, defaultPromptId);
-      showToast('Default prompt updated!');
-    });
-  });
-}
-
 // Set a specific prompt as default
 function setAsDefault(promptId) {
   chrome.storage.sync.get(['prompts'], (items) => {
@@ -334,8 +308,3 @@ function showToast(message) {
     }, 500);
   }, 2000);
 }
-
-// Make functions globally available
-window.editPrompt = editPrompt;
-window.deletePrompt = deletePrompt;
-window.movePrompt = movePrompt; 
