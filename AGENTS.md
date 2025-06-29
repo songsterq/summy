@@ -1,7 +1,7 @@
 # AGENT Instructions
 
 ## Repository Overview
-Summy is a minimal Chrome extension that summarizes web pages using ChatGPT. It is built with vanilla JavaScript and HTML and runs directly in the browser without a build step.
+Summy is a minimal Chrome extension that summarizes web pages and selected text using ChatGPT. It is built with vanilla JavaScript and HTML and runs directly in the browser without a build step.
 
 ## Development Workflow
 - No setup commands are necessary.

@@ -5,6 +5,7 @@ A Chrome extension that helps you summarize web content using ChatGPT. Simply cl
 ## Features
 
 - One-click summarization: Click the extension icon to instantly summarize the current page
+- Summarize selected text: Right-click on selected text and choose "Summarize Selected Text" from the context menu
 - Smart content extraction: Uses Mozilla's Readability library to reliably extract main content
 - Cleans up extracted text by removing extra blank lines
 - Configurable ChatGPT model (GPT-4 or GPT-3.5 Turbo)
@@ -29,7 +30,13 @@ A Chrome extension that helps you summarize web content using ChatGPT. Simply cl
    - Open ChatGPT in a new tab
    - Enter a prompt to summarize the content
 
-### Method 2: Use Keyboard Shortcut
+### Method 2: Right-Click on Selected Text
+1. Select any text on a webpage
+2. Right-click to open the context menu
+3. Choose "Summarize Selected Text"
+4. The extension will open ChatGPT in a new tab and ask it to summarize the selected text
+
+### Method 3: Use Keyboard Shortcut
 - Press Command+Shift+S (Mac) or Ctrl+Shift+S (Windows/Linux) while on any webpage
 - This performs the same action as clicking the extension icon
 
@@ -44,17 +51,19 @@ A Chrome extension that helps you summarize web content using ChatGPT. Simply cl
 
 ## How It Works
 
-1. When triggered, the extension extracts the main content from the current webpage using Mozilla's Readability algorithm and removes excess blank lines
-2. It opens ChatGPT in a new tab
-3. The content is automatically entered into ChatGPT's interface
-4. A prompt is added to request a summary of the content
-5. ChatGPT processes the request and provides a summary
+1. When triggered by clicking the icon, the extension extracts the main content from the current webpage using Mozilla's Readability algorithm and removes excess blank lines.
+2. When triggered by the context menu, the extension uses the selected text.
+3. It opens ChatGPT in a new tab.
+4. The content is automatically entered into ChatGPT's interface.
+5. A prompt is added to request a summary of the content.
+6. ChatGPT processes the request and provides a summary.
 
 ## Note
 
 You'll need to have access to ChatGPT (https://chatgpt.com/) for this extension to work. The extension requires the following permissions:
 - `activeTab`: To access the current tab's content
 - `storage`: To save your preferences
+- `contextMenus`: To add the right-click context menu
 - `commands`: For keyboard shortcut support
 - `scripting`: To extract content and interact with ChatGPT
 - Host permission for chatgpt.com: To interact with ChatGPT's interface
