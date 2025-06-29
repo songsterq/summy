@@ -95,110 +95,10 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-// Common function to process a tab with a specific prompt
-async function processTab(tab, promptId) {
-  // Get the stored settings
-  const settings = await chrome.storage.sync.get(DEFAULT_SETTINGS);
-
-  // Get the prompt template
-  let promptTemplate = DEFAULT_PROMPT_TEMPLATE; // fallback
-  
-  if (promptId && settings.prompts && settings.prompts.length > 0) {
-    // Find the specific prompt by ID
-    const selectedPrompt = settings.prompts.find(p => p.id === promptId);
-    if (selectedPrompt) {
-      promptTemplate = selectedPrompt.template;
-    }
-  } else if (settings.prompts && settings.prompts.length > 0) {
-    // Use default prompt (for extension icon click)
-    const defaultPrompt = settings.prompts.find(p => p.id === settings.defaultPromptId) || settings.prompts[0];
-    promptTemplate = defaultPrompt.template;
-  }
-
-  // Construct the URL with parameters (without 'q' parameter)
-  const url = new URL(settings.baseUrl);
-  
-  // Only set model parameter if not using temporary chat
-  if (!settings.useTemporaryChat) {
-    url.searchParams.set('model', settings.model);
-  }
-  
-  if (settings.useTemporaryChat) {
-    url.searchParams.set('temporary-chat', 'true');
-  }
-
-  // Default prompt with just the URL
-  let extractedContent = '';
-
-  // Execute script to extract content from the page
-  try {
-    // Inject the Readability library first
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ['Readability.js', 'utils.js']
-    });
-
-    const results = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      function: extractMainContent
-    });
-    
-    // Get the extracted content (results[0].result contains the return value)
-    extractedContent = results[0].result;
-  } catch (error) {
-    console.error('Error extracting content:', error);
-  }
-  
-  // Process the prompt template by replacing macros
-  let prompt = promptTemplate
-    .replace(/{PAGE_URL}/g, tab.url)
-    .replace(/{PAGE_CONTENT}/g, extractedContent);
-  
-  // Open the URL in a new tab and get the tab ID
-  chrome.tabs.create({ url: url.toString() }, (newTab) => {
-    // Define the update listener separately so we can easily remove it
-    const updateListener = (tabId, changeInfo, tab) => {
-      // Check if this is the tab we opened and it's done loading
-      if (tabId === newTab.id && changeInfo.status === 'complete') {
-        // Execute script to enter the prompt
-        chrome.scripting.executeScript({
-          target: { tabId: newTab.id },
-          function: enterPrompt,
-          args: [prompt]
-        });
-
-        // Remove the listener once we've handled the event
-        chrome.tabs.onUpdated.removeListener(updateListener);
-      }
-    };
-
-    // Listen for the tab to finish loading
-    chrome.tabs.onUpdated.addListener(updateListener);
-  });
-}
-
-// Common function to handle both tab and selection processing
-async function processTabOrSelection(tab, promptId) {
-  // Try to get selected text first
-  try {
-    const response = await chrome.tabs.sendMessage(tab.id, { action: 'getSelectedText' });
-    if (response && response.selectedText && response.selectedText.trim()) {
-      // If there's selected text, use it
-      await processSelectedText(tab, promptId, response.selectedText);
-      return;
-    }
-  } catch (error) {
-    console.log('No content script or selected text available, falling back to page summary');
-  }
-  
-  // Fall back to page summarization
-  await processTab(tab, promptId);
-}
-
-// Common function to process selected text with a specific prompt
-async function processSelectedText(tab, promptId, selectedText) {
-  if (!selectedText || selectedText.trim() === '') {
-    console.log('No text selected');
+// Common function to process content with a specific prompt
+async function processContent(tab, promptId, content) {
+  if (!content || content.trim() === '') {
+    console.log('No content provided');
     return;
   }
 
@@ -235,7 +135,7 @@ async function processSelectedText(tab, promptId, selectedText) {
   // Process the prompt template by replacing macros
   let prompt = promptTemplate
     .replace(/{PAGE_URL}/g, tab.url)
-    .replace(/{PAGE_CONTENT}/g, selectedText.trim());
+    .replace(/{PAGE_CONTENT}/g, content.trim());
   
   // Open the URL in a new tab and get the tab ID
   chrome.tabs.create({ url: url.toString() }, (newTab) => {
@@ -258,6 +158,54 @@ async function processSelectedText(tab, promptId, selectedText) {
     // Listen for the tab to finish loading
     chrome.tabs.onUpdated.addListener(updateListener);
   });
+}
+
+// Function to process a tab (extract content from the page)
+async function processTab(tab, promptId) {
+  // Execute script to extract content from the page
+  try {
+    // Inject the Readability library first
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['Readability.js', 'utils.js']
+    });
+
+    const results = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      function: extractMainContent
+    });
+    
+    // Get the extracted content (results[0].result contains the return value)
+    const extractedContent = results[0].result;
+    
+    // Process the extracted content
+    await processContent(tab, promptId, extractedContent);
+  } catch (error) {
+    console.error('Error extracting content:', error);
+  }
+}
+
+// Function to process selected text
+async function processSelectedText(tab, promptId, selectedText) {
+  await processContent(tab, promptId, selectedText);
+}
+
+// Common function to handle both tab and selection processing
+async function processTabOrSelection(tab, promptId) {
+  // Try to get selected text first
+  try {
+    const response = await chrome.tabs.sendMessage(tab.id, { action: 'getSelectedText' });
+    if (response && response.selectedText && response.selectedText.trim()) {
+      // If there's selected text, use it
+      await processSelectedText(tab, promptId, response.selectedText);
+      return;
+    }
+  } catch (error) {
+    console.log('No content script or selected text available, falling back to page summary');
+  }
+  
+  // Fall back to page summarization
+  await processTab(tab, promptId);
 }
 
 // Function to enter the prompt into the ChatGPT text box
