@@ -57,6 +57,27 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('updatePromptBtn').addEventListener('click', updatePrompt);
   document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
   document.getElementById('defaultPrompt').addEventListener('change', updateDefaultPrompt);
+  
+  // Add event delegation for prompt action buttons
+  document.getElementById('promptsList').addEventListener('click', function(e) {
+    const promptItem = e.target.closest('.prompt-item');
+    if (!promptItem) return;
+    
+    const promptId = promptItem.dataset.promptId;
+    const promptIndex = parseInt(promptItem.dataset.promptIndex);
+    
+    if (e.target.classList.contains('btn-edit')) {
+      editPrompt(promptId);
+    } else if (e.target.classList.contains('btn-delete')) {
+      deletePrompt(promptId);
+    } else if (e.target.classList.contains('btn-move-up')) {
+      movePrompt(promptId, -1);
+    } else if (e.target.classList.contains('btn-move-down')) {
+      movePrompt(promptId, 1);
+    } else if (e.target.classList.contains('btn-set-default')) {
+      setAsDefault(promptId);
+    }
+  });
 });
 
 // Save options
@@ -96,11 +117,17 @@ function loadPrompts(prompts, defaultPromptId) {
     // Create a default prompt if none exist
     const defaultPrompt = {
       id: generatePromptId(),
-      name: 'Default Summary',
+      name: 'Summy',
       template: 'Summarize the following content from {PAGE_URL}:\n\n{PAGE_CONTENT}'
     };
     prompts = [defaultPrompt];
-    chrome.storage.sync.set({ prompts, defaultPromptId: defaultPrompt.id });
+    // Always set the first prompt as default if no default is set
+    const newDefaultPromptId = defaultPromptId || defaultPrompt.id;
+    chrome.storage.sync.set({ prompts, defaultPromptId: newDefaultPromptId }, () => {
+      // Reload prompts with the updated defaultPromptId
+      loadPrompts(prompts, newDefaultPromptId);
+    });
+    return; // Exit early, will be called again with the updated defaultPromptId
   }
   
   prompts.forEach((prompt, index) => {
@@ -116,14 +143,18 @@ function loadPrompts(prompts, defaultPromptId) {
     // Add to list
     const promptItem = document.createElement('div');
     promptItem.className = 'prompt-item' + (prompt.id === defaultPromptId ? ' default' : '');
+    promptItem.dataset.promptId = prompt.id;
+    promptItem.dataset.promptIndex = index;
+    
     promptItem.innerHTML = `
       <div class="prompt-header">
         <span class="prompt-name${prompt.id === defaultPromptId ? ' default' : ''}">${prompt.name}</span>
         <div class="prompt-actions">
-          ${index > 0 ? '<button class="btn-move" onclick="movePrompt(\'' + prompt.id + '\', -1)">↑</button>' : ''}
-          ${index < prompts.length - 1 ? '<button class="btn-move" onclick="movePrompt(\'' + prompt.id + '\', 1)">↓</button>' : ''}
-          <button class="btn-secondary" onclick="editPrompt('${prompt.id}')">Edit</button>
-          <button class="btn-danger" onclick="deletePrompt('${prompt.id}')">Delete</button>
+          ${index > 0 ? '<button class="btn-move btn-move-up" data-direction="-1">&uarr;</button>' : ''}
+          ${index < prompts.length - 1 ? '<button class="btn-move btn-move-down" data-direction="1">&darr;</button>' : ''}
+          ${prompt.id !== defaultPromptId ? '<button class="btn-primary btn-set-default">Set as Default</button>' : ''}
+          <button class="btn-secondary btn-edit">Edit</button>
+          <button class="btn-danger btn-delete">Delete</button>
         </div>
       </div>
       <div class="prompt-content">${prompt.template}</div>
@@ -284,6 +315,16 @@ function updateDefaultPrompt() {
   chrome.storage.sync.get(['prompts'], (items) => {
     chrome.storage.sync.set({ defaultPromptId }, () => {
       loadPrompts(items.prompts, defaultPromptId);
+      showToast('Default prompt updated!');
+    });
+  });
+}
+
+// Set a specific prompt as default
+function setAsDefault(promptId) {
+  chrome.storage.sync.get(['prompts'], (items) => {
+    chrome.storage.sync.set({ defaultPromptId: promptId }, () => {
+      loadPrompts(items.prompts, promptId);
       showToast('Default prompt updated!');
     });
   });
