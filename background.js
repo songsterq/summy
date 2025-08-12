@@ -123,11 +123,6 @@ async function processContent(tab, promptId, content) {
   // Construct the URL with parameters
   const url = new URL(settings.baseUrl);
   
-  // Only set model parameter if not using temporary chat
-  if (!settings.useTemporaryChat) {
-    url.searchParams.set('model', settings.model);
-  }
-  
   if (settings.useTemporaryChat) {
     url.searchParams.set('temporary-chat', 'true');
   }

@@ -45,7 +45,6 @@ const ELIM5_PROMPT_NAME = 'ELIM5';
 // Default settings
 const DEFAULT_SETTINGS = {
   baseUrl: 'https://chatgpt.com/',
-  model: 'gpt-4o',
   useTemporaryChat: false,
   prompts: [],
   defaultPromptId: null

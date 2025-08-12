@@ -1,8 +1,4 @@
-// Function to toggle model field based on temporary chat setting
-function toggleModelField(useTemporaryChat) {
-  const modelSelect = document.getElementById('model');
-  modelSelect.disabled = useTemporaryChat;
-}
+
 
 // Function to get the current keyboard shortcut
 function getCurrentShortcut() {
@@ -20,11 +16,7 @@ function getCurrentShortcut() {
 document.addEventListener('DOMContentLoaded', () => {
   chrome.storage.sync.get(DEFAULT_SETTINGS, (items) => {
     document.getElementById('baseUrl').value = items.baseUrl;
-    document.getElementById('model').value = items.model;
     document.getElementById('useTemporaryChat').checked = items.useTemporaryChat;
-    
-    // Initialize model field state
-    toggleModelField(items.useTemporaryChat);
     
     // Load prompts and default selection
     loadPrompts(items.prompts, items.defaultPromptId);
@@ -35,11 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Add event listeners for auto-save
   document.getElementById('baseUrl').addEventListener('input', debounce(saveOptions, 500));
-  document.getElementById('model').addEventListener('change', saveOptions);
-  document.getElementById('useTemporaryChat').addEventListener('change', function() {
-    toggleModelField(this.checked);
-    saveOptions();
-  });
+  document.getElementById('useTemporaryChat').addEventListener('change', saveOptions);
   
   // Add event listeners for prompt management
   document.getElementById('addPromptBtn').addEventListener('click', addPrompt);
@@ -69,12 +57,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // Save options
 function saveOptions() {
   const baseUrl = document.getElementById('baseUrl').value;
-  const model = document.getElementById('model').value;
   const useTemporaryChat = document.getElementById('useTemporaryChat').checked;
 
   chrome.storage.sync.set({
     baseUrl,
-    model,
     useTemporaryChat
   }, () => {
     showToast('Options saved.');
