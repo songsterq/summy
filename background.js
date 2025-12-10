@@ -142,7 +142,7 @@ async function processContent(tab, promptId, content) {
         chrome.scripting.executeScript({
           target: { tabId: newTab.id },
           function: enterPrompt,
-          args: [prompt]
+          args: [prompt, PLATFORMS]
         });
 
         // Remove the listener once we've handled the event
@@ -204,16 +204,18 @@ async function processTabOrSelection(tab, promptId) {
 }
 
 // Function to enter the prompt into the AI platform text box
-function enterPrompt(prompt) {
+function enterPrompt(prompt, platforms) {
   // Determine which platform we're on based on the domain
   const domain = window.location.hostname;
   let selector = null;
+  let isGemini = false;
   
   // Find the appropriate selector for the platform
   if (domain.includes('chatgpt.com')) {
-    selector = PLATFORMS.CHATGPT.selector;
+    selector = platforms.CHATGPT.selector;
   } else if (domain.includes('gemini.google.com')) {
-    selector = PLATFORMS.GEMINI.selector;
+    selector = platforms.GEMINI.selector;
+    isGemini = true;
   }
   
   if (!selector) {
@@ -227,36 +229,77 @@ function enterPrompt(prompt) {
     if (textbox) {
       clearInterval(interval);
       
-      // Set the content of the textbox
-      textbox.innerHTML = `<p>${prompt}</p>`;
-      
-      // Create and dispatch an input event to trigger the UI
-      const inputEvent = new Event('input', { bubbles: true });
-      textbox.dispatchEvent(inputEvent);
-      
-      // Focus the textbox and set cursor to the end
-      textbox.focus();
-      
-      // Place the cursor at the end
-      const range = document.createRange();
-      const selection = window.getSelection();
-      range.selectNodeContents(textbox);
-      range.collapse(false); // false means collapse to end
-      selection.removeAllRanges();
-      selection.addRange(range);
-      
-      // Simulate Enter key press to submit the prompt
-      setTimeout(() => {
-        const enterEvent = new KeyboardEvent('keydown', {
-          key: 'Enter',
-          code: 'Enter',
-          keyCode: 13,
-          which: 13,
-          bubbles: true,
-          cancelable: true
-        });
-        textbox.dispatchEvent(enterEvent);
-      }, 100); // Small delay to ensure focus is set
+      if (isGemini) {
+        // For Gemini, insert prompt into the <p> tag inside the contenteditable div
+        let pTag = textbox.querySelector('p');
+        if (!pTag) {
+          pTag = document.createElement('p');
+          textbox.appendChild(pTag);
+        }
+        
+        // Set the text content of the <p> tag
+        pTag.textContent = prompt;
+        
+        // Dispatch input event on the textbox
+        const inputEvent = new Event('input', { bubbles: true });
+        textbox.dispatchEvent(inputEvent);
+        
+        // Focus the textbox
+        textbox.focus();
+        
+        // Place the cursor at the end of the <p> tag
+        const range = document.createRange();
+        const selection = window.getSelection();
+        range.selectNodeContents(pTag);
+        range.collapse(false); // false means collapse to end
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        // Simulate Enter key press to submit the prompt
+        setTimeout(() => {
+          const enterEvent = new KeyboardEvent('keydown', {
+            key: 'Enter',
+            code: 'Enter',
+            keyCode: 13,
+            which: 13,
+            bubbles: true,
+            cancelable: true
+          });
+          textbox.dispatchEvent(enterEvent);
+        }, 100); // Small delay to ensure focus is set
+      } else {
+        // For ChatGPT, use the original approach
+        // Set the content of the textbox
+        textbox.innerHTML = `<p>${prompt}</p>`;
+        
+        // Create and dispatch an input event to trigger the UI
+        const inputEvent = new Event('input', { bubbles: true });
+        textbox.dispatchEvent(inputEvent);
+        
+        // Focus the textbox and set cursor to the end
+        textbox.focus();
+        
+        // Place the cursor at the end
+        const range = document.createRange();
+        const selection = window.getSelection();
+        range.selectNodeContents(textbox);
+        range.collapse(false); // false means collapse to end
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        // Simulate Enter key press to submit the prompt
+        setTimeout(() => {
+          const enterEvent = new KeyboardEvent('keydown', {
+            key: 'Enter',
+            code: 'Enter',
+            keyCode: 13,
+            which: 13,
+            bubbles: true,
+            cancelable: true
+          });
+          textbox.dispatchEvent(enterEvent);
+        }, 100); // Small delay to ensure focus is set
+      }
     }
   }, 500); // Check every 500ms until the textbox is found
 } 

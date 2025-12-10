@@ -54,7 +54,7 @@ const PLATFORMS = {
     name: 'Gemini',
     baseUrl: 'https://gemini.google.com/app',
     domain: 'gemini.google.com',
-    selector: 'rich-textarea'
+    selector: 'rich-textarea div[contenteditable="true"]'
   }
 };
 
