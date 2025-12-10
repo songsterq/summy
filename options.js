@@ -20,11 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('useTemporaryChat').checked = items.useTemporaryChat;
     
     // Determine which platform is selected based on baseUrl
-    let selectedPlatform = 'CUSTOM';
+    let selectedPlatform = 'CHATGPT'; // Default to ChatGPT
     if (baseUrl === PLATFORMS.CHATGPT.baseUrl) {
       selectedPlatform = 'CHATGPT';
     } else if (baseUrl === PLATFORMS.GEMINI.baseUrl) {
       selectedPlatform = 'GEMINI';
+    } else if (baseUrl === PLATFORMS.CLAUDE.baseUrl) {
+      selectedPlatform = 'CLAUDE';
     }
     document.getElementById('platform').value = selectedPlatform;
     updateUIForPlatform(selectedPlatform);
@@ -76,6 +78,8 @@ function onPlatformChange() {
     document.getElementById('baseUrl').value = PLATFORMS.CHATGPT.baseUrl;
   } else if (platform === 'GEMINI') {
     document.getElementById('baseUrl').value = PLATFORMS.GEMINI.baseUrl;
+  } else if (platform === 'CLAUDE') {
+    document.getElementById('baseUrl').value = PLATFORMS.CLAUDE.baseUrl;
   }
   
   saveOptions();
@@ -87,15 +91,12 @@ function updateUIForPlatform(platform) {
   const temporaryChatGroup = document.getElementById('temporaryChatGroup');
   const baseUrlInput = document.getElementById('baseUrl');
   
-  if (platform === 'CUSTOM') {
-    baseUrlGroup.style.display = 'block';
-    baseUrlInput.readOnly = false;
-    temporaryChatGroup.style.display = 'flex';
-  } else if (platform === 'GEMINI') {
+  if (platform === 'GEMINI' || platform === 'CLAUDE') {
     baseUrlGroup.style.display = 'block';
     baseUrlInput.readOnly = true;
     temporaryChatGroup.style.display = 'none';
   } else {
+    // ChatGPT
     baseUrlGroup.style.display = 'block';
     baseUrlInput.readOnly = true;
     temporaryChatGroup.style.display = 'flex';

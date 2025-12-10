@@ -55,6 +55,12 @@ const PLATFORMS = {
     baseUrl: 'https://gemini.google.com/app',
     domain: 'gemini.google.com',
     selector: 'rich-textarea div[contenteditable="true"]'
+  },
+  CLAUDE: {
+    name: 'Claude',
+    baseUrl: 'https://claude.ai/new',
+    domain: 'claude.ai',
+    selector: 'div[data-testid="chat-input"]'
   }
 };
 

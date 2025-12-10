@@ -216,6 +216,9 @@ function enterPrompt(prompt, platforms) {
   } else if (domain.includes('gemini.google.com')) {
     selector = platforms.GEMINI.selector;
     isGemini = true;
+  } else if (domain.includes('claude.ai')) {
+    selector = platforms.CLAUDE.selector;
+    isGemini = true; // Use same logic as Gemini (insert into <p> tag)
   }
   
   if (!selector) {
@@ -300,6 +303,8 @@ function enterPrompt(prompt, platforms) {
           textbox.dispatchEvent(enterEvent);
         }, 100); // Small delay to ensure focus is set
       }
+    } else {
+      console.error('No textbox found for platform:', domain);
     }
   }, 500); // Check every 500ms until the textbox is found
 } 
