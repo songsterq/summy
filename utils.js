@@ -42,6 +42,22 @@ const ELIM5_PROMPT_TEMPLATE = 'Explain like I\'m Five, using easy to understand 
 // ELIM5 prompt name
 const ELIM5_PROMPT_NAME = 'ELIM5';
 
+// Platform configurations
+const PLATFORMS = {
+  CHATGPT: {
+    name: 'ChatGPT',
+    baseUrl: 'https://chatgpt.com/',
+    domain: 'chatgpt.com',
+    selector: 'div[contenteditable="true"][id="prompt-textarea"]'
+  },
+  GEMINI: {
+    name: 'Gemini',
+    baseUrl: 'https://gemini.google.com/app',
+    domain: 'gemini.google.com',
+    selector: 'rich-textarea'
+  }
+};
+
 // Default settings
 const DEFAULT_SETTINGS = {
   baseUrl: 'https://chatgpt.com/',
@@ -84,6 +100,7 @@ if (typeof module !== 'undefined' && module.exports) {
     DEFAULT_PROMPT_NAME,
     ELIM5_PROMPT_TEMPLATE,
     ELIM5_PROMPT_NAME,
+    PLATFORMS,
     DEFAULT_SETTINGS,
     cleanText,
     debounce,

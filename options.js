@@ -15,8 +15,19 @@ function getCurrentShortcut() {
 // Load saved options
 document.addEventListener('DOMContentLoaded', () => {
   chrome.storage.sync.get(DEFAULT_SETTINGS, (items) => {
-    document.getElementById('baseUrl').value = items.baseUrl;
+    const baseUrl = items.baseUrl;
+    document.getElementById('baseUrl').value = baseUrl;
     document.getElementById('useTemporaryChat').checked = items.useTemporaryChat;
+    
+    // Determine which platform is selected based on baseUrl
+    let selectedPlatform = 'CUSTOM';
+    if (baseUrl === PLATFORMS.CHATGPT.baseUrl) {
+      selectedPlatform = 'CHATGPT';
+    } else if (baseUrl === PLATFORMS.GEMINI.baseUrl) {
+      selectedPlatform = 'GEMINI';
+    }
+    document.getElementById('platform').value = selectedPlatform;
+    updateUIForPlatform(selectedPlatform);
     
     // Load prompts and default selection
     loadPrompts(items.prompts, items.defaultPromptId);
@@ -26,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   // Add event listeners for auto-save
+  document.getElementById('platform').addEventListener('change', onPlatformChange);
   document.getElementById('baseUrl').addEventListener('input', debounce(saveOptions, 500));
   document.getElementById('useTemporaryChat').addEventListener('change', saveOptions);
   
@@ -53,6 +65,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// Handle platform selection change
+function onPlatformChange() {
+  const platform = document.getElementById('platform').value;
+  updateUIForPlatform(platform);
+  
+  // Update baseUrl based on platform selection
+  if (platform === 'CHATGPT') {
+    document.getElementById('baseUrl').value = PLATFORMS.CHATGPT.baseUrl;
+  } else if (platform === 'GEMINI') {
+    document.getElementById('baseUrl').value = PLATFORMS.GEMINI.baseUrl;
+  }
+  
+  saveOptions();
+}
+
+// Update UI elements based on selected platform
+function updateUIForPlatform(platform) {
+  const baseUrlGroup = document.getElementById('baseUrlGroup');
+  const temporaryChatGroup = document.getElementById('temporaryChatGroup');
+  const baseUrlInput = document.getElementById('baseUrl');
+  
+  if (platform === 'CUSTOM') {
+    baseUrlGroup.style.display = 'block';
+    baseUrlInput.readOnly = false;
+    temporaryChatGroup.style.display = 'flex';
+  } else if (platform === 'GEMINI') {
+    baseUrlGroup.style.display = 'block';
+    baseUrlInput.readOnly = true;
+    temporaryChatGroup.style.display = 'none';
+  } else {
+    baseUrlGroup.style.display = 'block';
+    baseUrlInput.readOnly = true;
+    temporaryChatGroup.style.display = 'flex';
+  }
+}
 
 // Save options
 function saveOptions() {

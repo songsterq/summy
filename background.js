@@ -203,18 +203,34 @@ async function processTabOrSelection(tab, promptId) {
   await processTab(tab, promptId);
 }
 
-// Function to enter the prompt into the ChatGPT text box
+// Function to enter the prompt into the AI platform text box
 function enterPrompt(prompt) {
-  // Find the textarea by its ID
+  // Determine which platform we're on based on the domain
+  const domain = window.location.hostname;
+  let selector = null;
+  
+  // Find the appropriate selector for the platform
+  if (domain.includes('chatgpt.com')) {
+    selector = PLATFORMS.CHATGPT.selector;
+  } else if (domain.includes('gemini.google.com')) {
+    selector = PLATFORMS.GEMINI.selector;
+  }
+  
+  if (!selector) {
+    console.error('Unknown platform domain:', domain);
+    return;
+  }
+  
+  // Find the textarea by its selector
   const interval = setInterval(() => {
-    const textbox = document.querySelector('div[contenteditable="true"][id="prompt-textarea"]');
+    const textbox = document.querySelector(selector);
     if (textbox) {
       clearInterval(interval);
       
       // Set the content of the textbox
       textbox.innerHTML = `<p>${prompt}</p>`;
       
-      // Create and dispatch an input event to trigger ChatGPT's UI
+      // Create and dispatch an input event to trigger the UI
       const inputEvent = new Event('input', { bubbles: true });
       textbox.dispatchEvent(inputEvent);
       

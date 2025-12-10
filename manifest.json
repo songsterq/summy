@@ -11,7 +11,8 @@
     "contextMenus"
   ],
   "host_permissions": [
-    "https://*.chatgpt.com/*"
+    "https://*.chatgpt.com/*",
+    "https://*.google.com/*"
   ],
   "action": {
     "default_icon": {
