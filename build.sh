@@ -118,17 +118,17 @@ create_zip() {
     echo -e "${BLUE}Creating zip package: $zip_name${NC}"
     
     # Remove existing zip if it exists
-    rm -f "$zip_name"
+    rm -f "dist/$zip_name"
     
-    # Create zip from dist contents (not the dist folder itself)
+    # Create zip with selected files in dist/
     cd dist
-    zip -r "../$zip_name" .
+    zip -r "$zip_name" manifest.json background.js content.js options.html options.js utils.js Readability.js icons/
     cd ..
     
-    echo -e "${GREEN}Package created: $zip_name${NC}"
+    echo -e "${GREEN}Package created: dist/$zip_name${NC}"
     
     # Show file size
-    local size=$(ls -lh "$zip_name" | awk '{print $5}')
+    local size=$(ls -lh "dist/$zip_name" | awk '{print $5}')
     echo -e "${BLUE}Package size: $size${NC}"
 }
 
@@ -218,10 +218,10 @@ echo -e "${BLUE}Version: $CURRENT_VERSION → $NEW_VERSION${NC}"
 
 # Get the same extension name for final output
 EXTENSION_NAME=$(grep '"name"' manifest.json | sed 's/.*"name": "\([^"]*\)".*/\1/' | tr '[:upper:]' '[:lower:]' | sed 's/ /-/g' | sed 's/[^a-z0-9-]//g')
-echo -e "${BLUE}Package: $EXTENSION_NAME-v$NEW_VERSION.zip${NC}"
+echo -e "${BLUE}Package: dist/$EXTENSION_NAME-v$NEW_VERSION.zip${NC}"
 echo ""
 echo "To load the extension in Chrome:"
 echo "1. Open chrome://extensions/"
 echo "2. Enable Developer mode"
-echo "3. Extract $EXTENSION_NAME-v$NEW_VERSION.zip"
+echo "3. Extract dist/$EXTENSION_NAME-v$NEW_VERSION.zip"
 echo "4. Click 'Load unpacked' and select the extracted folder"
